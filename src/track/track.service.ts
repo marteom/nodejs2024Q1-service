@@ -1,13 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { tracksData } from './data/track.data';
-import { delTrackFromFavorites, isIdValid } from '../utils/common-utils';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { isIdValid } from '../utils/common-utils';
 import { TrackModel } from './track.model';
-import { getTrack } from './utils/helper';
+import { dbService } from 'src/utils/data/db.service';
 
 @Injectable()
 export class TrackService {
+
+  //@Inject(dbService)
+  private readonly databaseService: dbService;
+
   async getAllTracks() {
-    return tracksData;
+    return this.databaseService.getAllTracks();
   }
 
   async getTrackById(id: string) {
@@ -18,9 +21,7 @@ export class TrackService {
       );
     }
 
-    const track: TrackModel = tracksData.find(
-      (element: TrackModel) => element.id === id,
-    );
+    const track = await this.databaseService.getTrackById(id);
 
     if (track) {
       return track;
@@ -29,7 +30,7 @@ export class TrackService {
     throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
   }
 
-  async CreateTrackDto(dto: Omit<TrackModel, 'id'>) {
+  async CreateTrack(dto: Omit<TrackModel, 'id'>) {
     if (
       dto.albumId === undefined ||
       !(dto.albumId === null ? true : await isIdValid(dto.albumId))
@@ -64,13 +65,7 @@ export class TrackService {
       );
     }
 
-    const newTrack = await getTrack(
-      dto.albumId,
-      dto.artistId,
-      dto.name,
-      dto.duration,
-    );
-    tracksData.push(newTrack);
+    const newTrack = await this.databaseService.CreateTrack(dto.albumId, dto.artistId, dto.name, dto.duration);
     return newTrack;
   }
 
@@ -116,20 +111,13 @@ export class TrackService {
       );
     }
 
-    const putedTrackIndex = tracksData.findIndex(
-      (element: TrackModel) => element.id === id,
-    );
+    const putedTrack = await this.databaseService.updateTrackInfo(id, dto.albumId, dto.artistId, dto.duration, dto.name);
 
-    if (putedTrackIndex === -1) {
+    if (!putedTrack) {
       throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
     }
 
-    tracksData[putedTrackIndex].albumId = dto.albumId;
-    tracksData[putedTrackIndex].artistId = dto.artistId;
-    tracksData[putedTrackIndex].duration = dto.duration;
-    tracksData[putedTrackIndex].name = dto.name;
-
-    return tracksData[putedTrackIndex];
+    return putedTrack;
   }
 
   async deleteTrackById(id: string) {
@@ -140,16 +128,12 @@ export class TrackService {
       );
     }
 
-    const deletedTrackIndex = tracksData.findIndex(
-      (element: TrackModel) => element.id === id,
-    );
+    const deletedTrack = await this.databaseService.deleteTrackById(id);
 
-    if (deletedTrackIndex === -1) {
+    if (!deletedTrack) {
       throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
     }
 
-    await delTrackFromFavorites(id);
-
-    return tracksData.splice(deletedTrackIndex, 1);
+    return deletedTrack;
   }
 }

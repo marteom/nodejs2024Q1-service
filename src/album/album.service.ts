@@ -1,18 +1,16 @@
-import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
-import { albumsData } from './data/album.data';
-import {
-  delAlbumFromFavorites,
-  isIdValid,
-  nulledAlbumForTrack,
-} from '../utils/common-utils';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { isIdValid } from '../utils/common-utils';
 import { AlbumModel } from './album.model';
-import { getAlbum } from './utils/helper';
-import { tracksData } from '../track/data/track.data';
+import { dbService } from 'src/utils/data/db.service';
 
 @Injectable()
 export class AlbumService {
+
+  @Inject(dbService)
+  private readonly databaseService: dbService;
+
   async getAllAlbums() {
-    return albumsData;
+    return this.databaseService.getAllAlbums();
   }
 
   async getAlbumById(id: string) {
@@ -23,15 +21,12 @@ export class AlbumService {
       );
     }
 
-    const album: AlbumModel = albumsData.find(
-      (element: AlbumModel) => element.id === id,
-    );
-
-    if (album) {
-      return album;
+    const album = await this.databaseService.getAlbumById(id);
+    if(!album) {
+      throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
     }
 
-    throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
+    return album;
   }
 
   async CreateAlbum(dto: Omit<AlbumModel, 'id'>) {
@@ -59,9 +54,7 @@ export class AlbumService {
       );
     }
 
-    const newAlbum = await getAlbum(dto.name, dto.year, dto.artistId);
-    albumsData.push(newAlbum);
-    return newAlbum;
+    return this.databaseService.CreateAlbum(dto.name, dto.year, dto.artistId);
   }
 
   async updateAlbumInfo(id: string, dto: Omit<AlbumModel, 'id'>) {
@@ -96,19 +89,13 @@ export class AlbumService {
       );
     }
 
-    const putedAlbumIndex = albumsData.findIndex(
-      (element: AlbumModel) => element.id === id,
-    );
+    const updatedAlbum = this.databaseService.updateAlbumInfo(id, dto.name, dto.year, dto.artistId);
 
-    if (putedAlbumIndex === -1) {
+    if (!updatedAlbum) {
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
     }
 
-    albumsData[putedAlbumIndex].name = dto.name;
-    albumsData[putedAlbumIndex].year = dto.year;
-    albumsData[putedAlbumIndex].artistId = dto.artistId;
-
-    return albumsData[putedAlbumIndex];
+     return updatedAlbum;
   }
 
   async deleteAlbumById(id: string) {
@@ -119,17 +106,12 @@ export class AlbumService {
       );
     }
 
-    const deletedAlbumIndex = albumsData.findIndex(
-      (element: AlbumModel) => element.id === id,
-    );
+    const deletedAlbum = this.databaseService.deleteAlbumById(id);
 
-    if (deletedAlbumIndex === -1) {
+    if (!deletedAlbum) {
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
     }
 
-    await delAlbumFromFavorites(id);
-    await nulledAlbumForTrack(tracksData, id);
-
-    return albumsData.splice(deletedAlbumIndex, 1);
+    return deletedAlbum;
   }
 }

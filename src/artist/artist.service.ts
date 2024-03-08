@@ -1,20 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { artistsData } from './data/artist.data';
-import {
-  delArtistFromFavorites,
-  isIdValid,
-  nulledArtistForAlbum,
-  nulledArtistForTrack,
-} from '../utils/common-utils';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { isIdValid } from '../utils/common-utils';
 import { ArtistModel } from './artist.model';
-import { getArtist } from './utils/helper';
-import { albumsData } from '../album/data/album.data';
-import { tracksData } from '../track/data/track.data';
+import { dbService } from 'src/utils/data/db.service';
 
 @Injectable()
 export class ArtistService {
+
+  //@Inject(dbService)
+  private readonly databaseService: dbService;
+
   async getAllArtists() {
-    return artistsData;
+    return this.databaseService.getAllArtists();
   }
 
   async getArtistById(id: string) {
@@ -25,15 +21,13 @@ export class ArtistService {
       );
     }
 
-    const artist: ArtistModel = artistsData.find(
-      (element: ArtistModel) => element.id === id,
-    );
+    const artist = await this.databaseService.getArtistById(id);
 
-    if (artist) {
-      return artist;
+    if (!artist) {
+      throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
     }
 
-    throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
+    return artist;
   }
 
   async CreateArtist(dto: Omit<ArtistModel, 'id'>) {
@@ -51,9 +45,7 @@ export class ArtistService {
       );
     }
 
-    const newArtist = await getArtist(dto.name, dto.grammy);
-    artistsData.push(newArtist);
-    return newArtist;
+    return await this.databaseService.CreateArtist(dto.name, dto.grammy);
   }
 
   async updateArtistInfo(id: string, dto: Omit<ArtistModel, 'id'>) {
@@ -78,18 +70,13 @@ export class ArtistService {
       );
     }
 
-    const putedArtistIndex = artistsData.findIndex(
-      (element: ArtistModel) => element.id === id,
-    );
+    const putedArtist = await this.databaseService.updateArtistInfo(id, dto.name, dto.grammy);
 
-    if (putedArtistIndex === -1) {
+    if (!putedArtist) {
       throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
     }
 
-    artistsData[putedArtistIndex].name = dto.name;
-    artistsData[putedArtistIndex].grammy = dto.grammy;
-
-    return artistsData[putedArtistIndex];
+    return putedArtist;
   }
 
   async deleteArtistById(id: string) {
@@ -100,18 +87,12 @@ export class ArtistService {
       );
     }
 
-    const deletedArtistIndex = artistsData.findIndex(
-      (element: ArtistModel) => element.id === id,
-    );
+    const deletedArtist = await this.databaseService.deleteArtistById(id);
 
-    if (deletedArtistIndex === -1) {
+    if (!deletedArtist) {
       throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
     }
 
-    await delArtistFromFavorites(id);
-    await nulledArtistForAlbum(albumsData, id);
-    await nulledArtistForTrack(tracksData, id);
-
-    return artistsData.splice(deletedArtistIndex, 1);
+    return deletedArtist;
   }
 }

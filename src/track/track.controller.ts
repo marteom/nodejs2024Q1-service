@@ -28,8 +28,8 @@ export class TrackController {
   }
 
   @Post()
-  async CreateTrackDto(@Body() dto: Omit<TrackModel, 'id'>) {
-    return this.trackService.CreateTrackDto(dto);
+  async CreateTrack(@Body() dto: Omit<TrackModel, 'id'>) {
+    return this.trackService.CreateTrack(dto);
   }
 
   @Put(':id')
