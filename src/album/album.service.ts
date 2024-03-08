@@ -1,13 +1,13 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Inject } from '@nestjs/common';
 import { albumsData } from './data/album.data';
 import {
   delAlbumFromFavorites,
   isIdValid,
   nulledAlbumForTrack,
-} from 'src/utils/common-utils';
+} from '../utils/common-utils';
 import { AlbumModel } from './album.model';
 import { getAlbum } from './utils/helper';
-import { tracksData } from 'src/track/data/track.data';
+import { tracksData } from '../track/data/track.data';
 
 @Injectable()
 export class AlbumService {

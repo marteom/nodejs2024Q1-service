@@ -5,11 +5,11 @@ import {
   isIdValid,
   nulledArtistForAlbum,
   nulledArtistForTrack,
-} from 'src/utils/common-utils';
+} from '../utils/common-utils';
 import { ArtistModel } from './artist.model';
 import { getArtist } from './utils/helper';
-import { albumsData } from 'src/album/data/album.data';
-import { tracksData } from 'src/track/data/track.data';
+import { albumsData } from '../album/data/album.data';
+import { tracksData } from '../track/data/track.data';
 
 @Injectable()
 export class ArtistService {

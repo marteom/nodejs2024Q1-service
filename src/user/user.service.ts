@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { usersData } from './data/user.data';
-import { createUser, getUser, responseUserData } from './utils/helper';
-import { isIdValid } from 'src/utils/common-utils';
+import { createUser, getUser, responseUserData } from './utils/helper.js';
+import { isIdValid } from '../utils/common-utils'
 import { UserModel } from './user.model';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 

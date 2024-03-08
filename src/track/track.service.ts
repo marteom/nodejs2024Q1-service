@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { tracksData } from './data/track.data';
-import { delTrackFromFavorites, isIdValid } from 'src/utils/common-utils';
+import { delTrackFromFavorites, isIdValid } from '../utils/common-utils';
 import { TrackModel } from './track.model';
 import { getTrack } from './utils/helper';
 
