@@ -10,11 +10,11 @@ export const isIdValid = async (id: string): Promise<boolean> => {
 
 export const getTracksArray = async (
   tracksData: Array<TrackModel>,
-  trackList: Array<string>,
+  trackIdList: Array<string>,
 ): Promise<Array<TrackModel>> => {
   const tracks: Array<TrackModel> = [];
   tracksData.forEach((element) => {
-    if (trackList.includes(element.id)) {
+    if (trackIdList.includes(element.id)) {
       tracks.push(element);
     }
   });
@@ -24,11 +24,11 @@ export const getTracksArray = async (
 
 export const getAlbumsArray = async (
   albumsData: Array<AlbumModel>,
-  albumList: Array<string>,
+  albumIdList: Array<string>,
 ): Promise<Array<AlbumModel>> => {
   const albums: Array<AlbumModel> = [];
   albumsData.forEach((element) => {
-    if (albumList.includes(element.id)) {
+    if (albumIdList.includes(element.id)) {
       albums.push(element);
     }
   });
@@ -38,11 +38,11 @@ export const getAlbumsArray = async (
 
 export const getArtistsArray = async (
   artistsData: Array<ArtistModel>,
-  artistList: Array<string>,
+  artistIdList: Array<string>,
 ): Promise<Array<ArtistModel>> => {
   const artist: Array<ArtistModel> = [];
   artistsData.forEach((element) => {
-    if (artistList.includes(element.id)) {
+    if (artistIdList.includes(element.id)) {
       artist.push(element);
     }
   });
