@@ -19,11 +19,12 @@ import {
   getArtistsArray,
   getTracksArray,
 } from '../utils/common-utils';
+import { FavoritesResponse } from './favorites.model';
 
 @Controller('favs')
 export class FavoritesController {
   @Get()
-  async getAllFavorites() {
+  async getAllFavorites(): Promise<FavoritesResponse> {
     return {
       artists: await getArtistsArray(artistsData, favoritesData.artists),
       albums: await getAlbumsArray(albumsData, favoritesData.albums),
