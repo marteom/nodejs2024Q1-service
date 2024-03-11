@@ -12,7 +12,7 @@ import {
 
 import { TrackModel } from './track.model';
 import { Response } from 'express';
-import { isIdValid } from '../utils/common-utils';
+import { delTrackFromFavorites, isIdValid } from '../utils/common-utils';
 import { tracksData } from './data/track.data';
 import { getTrack } from './utils/helper.js';
 
@@ -160,6 +160,8 @@ export class TrackController {
     if (deletedTrackIndex === -1) {
       return response.status(HttpStatus.NOT_FOUND).send('Track not found');
     }
+
+    await delTrackFromFavorites(id);
 
     tracksData.splice(deletedTrackIndex, 1);
 

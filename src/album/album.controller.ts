@@ -15,8 +15,11 @@ import { albumsData } from './data/album.data.js';
 import { Response } from 'express';
 import { isIdValid } from '../utils/common-utils';
 import { getAlbum } from './utils/helper.js';
-//import { delAlbumFromFavorites, nulledAlbumForTrack } from '../utils/common-utils';
-//import { tracksData } from 'src/track/data/track.data';
+import {
+  delAlbumFromFavorites,
+  nulledAlbumForTrack,
+} from '../utils/common-utils';
+import { tracksData } from 'src/track/data/track.data';
 
 @Controller('album')
 export class AlbumController {
@@ -146,8 +149,8 @@ export class AlbumController {
     }
 
     albumsData.splice(deletedAlbumIndex, 1);
-    //await delAlbumFromFavorites(id);
-    //await nulledAlbumForTrack(tracksData, id);
+    await delAlbumFromFavorites(id);
+    await nulledAlbumForTrack(tracksData, id);
 
     return response
       .status(HttpStatus.NO_CONTENT)
