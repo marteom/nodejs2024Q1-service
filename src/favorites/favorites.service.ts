@@ -5,7 +5,7 @@ import { dbService } from 'src/utils/data/db.service';
 @Injectable()
 export class FavoriteService {
 
-  //@Inject(dbService)
+  @Inject(dbService)
   private readonly databaseService: dbService;
 
 
@@ -24,7 +24,7 @@ export class FavoriteService {
           );
     }
 
-    const track = this.databaseService.addTrackToFavorites(trackId);
+    const track = await this.databaseService.addTrackToFavorites(trackId);
     if (!track) {
         throw new HttpException(
             'Track does not exist',
@@ -46,7 +46,7 @@ export class FavoriteService {
           );
     }
 
-    const track = this.databaseService.deleteTrackFavoritesById(trackId);
+    const track = await this.databaseService.deleteTrackFavoritesById(trackId);
     if (!track) {
         throw new HttpException(
             'Track does not exist',
@@ -68,7 +68,7 @@ export class FavoriteService {
           );
     }
 
-    const album = this.databaseService.addAlbumToFavorites(albumId);
+    const album = await this.databaseService.addAlbumToFavorites(albumId);
     if (!album) {
         throw new HttpException(
             'Album does not exist',
@@ -90,7 +90,7 @@ export class FavoriteService {
           );
     }
 
-    const album = this.databaseService.deleteAlbumFavoritesById(albumId);
+    const album = await this.databaseService.deleteAlbumFavoritesById(albumId);
     if (!album) {
         throw new HttpException(
             'Album does not exist in favorites',
@@ -113,7 +113,7 @@ export class FavoriteService {
           );
     }
 
-    const artist = this.databaseService.addArtistToFavorites(artistId);
+    const artist = await this.databaseService.addArtistToFavorites(artistId);
     if (!artist) {
         throw new HttpException(
             'Artist does not exist',
@@ -135,7 +135,7 @@ export class FavoriteService {
           );
     }
 
-    const artist = this.databaseService.deleteArtistFavoritesById(artistId);
+    const artist = await this.databaseService.deleteArtistFavoritesById(artistId);
     if (!artist) {
         throw new HttpException(
             'Artist does not exist in favorites',

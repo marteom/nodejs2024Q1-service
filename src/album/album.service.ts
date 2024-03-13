@@ -89,7 +89,7 @@ export class AlbumService {
       );
     }
 
-    const updatedAlbum = this.databaseService.updateAlbumInfo(id, dto.name, dto.year, dto.artistId);
+    const updatedAlbum = await this.databaseService.updateAlbumInfo(id, dto.name, dto.year, dto.artistId);
 
     if (!updatedAlbum) {
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
@@ -106,8 +106,7 @@ export class AlbumService {
       );
     }
 
-    const deletedAlbum = this.databaseService.deleteAlbumById(id);
-
+    const deletedAlbum = await this.databaseService.deleteAlbumById(id);
     if (!deletedAlbum) {
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
     }

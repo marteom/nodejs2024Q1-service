@@ -8,7 +8,7 @@ import { dbService } from 'src/utils/data/db.service';
 @Injectable()
 export class UserService {
 
-  //@Inject(dbService)
+  @Inject(dbService)
   private readonly databaseService: dbService;
 
   async getAllUsers() {
