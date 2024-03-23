@@ -1,8 +1,8 @@
 # compiled output
 /dist
 /node_modules
-/postgres/logs/*
-/postgres/postgres_data/*
+/postgres/logs
+/postgres/postgres_data
 
 # Logs
 logs
