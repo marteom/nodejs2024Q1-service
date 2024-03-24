@@ -9,6 +9,7 @@
 
 ```
 git clone {repository URL}
+git checkout dev-2
 ```
 
 ## Installing NPM modules
@@ -20,11 +21,11 @@ npm install
 ## Running application
 
 ```
-npm start
+npm run start or npm run start:dev
 ```
 
 After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
+in your browser OpenAPI documentation by typing http://localhost:port/doc/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 ## Testing
@@ -65,8 +66,9 @@ npm run lint
 npm run format
 ```
 
-### Debugging in VSCode
+## To run in Docker:
 
-Press <kbd>F5</kbd> to debug.
+1. Move to root project directory in Terminal
+2. Run *docker compose up* or *sudo docker compose up* for launching
 
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
