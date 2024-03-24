@@ -8,7 +8,7 @@ export class ArtistEntity {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ default: false })
   grammy: boolean;
 
 }
