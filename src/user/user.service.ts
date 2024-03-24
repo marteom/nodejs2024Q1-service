@@ -61,13 +61,13 @@ export class UserService {
     if (!(await isIdValid(id))) {
       throw new BadRequestException('id parameter is invalid (not uuid)');
     }
-    // if (!dto.oldPassword) {
-    //   throw new BadRequestException('required parameter "oldPassword" is missing');
-    // }
+    if (!dto.oldPassword) {
+      throw new BadRequestException('required parameter "oldPassword" is missing');
+    }
 
-    // if (!dto.newPassword) {
-    //   throw new BadRequestException('required parameter "newPassword" is missing');
-    // }
+    if (!dto.newPassword) {
+      throw new BadRequestException('required parameter "newPassword" is missing');
+    }
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
