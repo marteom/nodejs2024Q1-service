@@ -8,10 +8,11 @@ import {
   Param,
   Post,
   Put,
+  ValidationPipe,
 } from '@nestjs/common';
-import { UserModel } from './user.model';
 import { UpdatePasswordDto } from './dto/update-password.dto.js';
 import { UserService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -28,13 +29,13 @@ export class UserController {
   }
 
   @Post()
-  async CreateUserDto(@Body() dto: Pick<UserModel, 'login' | 'password'>) {
+  async CreateUserDto(@Body() dto: CreateUserDto) {
     return this.userService.createUser(dto);
   }
 
   @Put(':id')
   async updateUserPasword(
-    @Param('id') id: string,
+    @Param('id', ValidationPipe) id: string,
     @Body() dto: UpdatePasswordDto,
   ) {
     return this.userService.updateUserPasword(id, dto);
