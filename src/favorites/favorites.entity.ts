@@ -20,37 +20,4 @@ export class FavoritesEntity {
   @ManyToMany(() => TrackEntity, { onDelete: 'SET NULL' })
   @JoinTable()
   tracks: TrackEntity[];
-
-  // @PrimaryGeneratedColumn('uuid')
-  // id: string;
-
-  // @OneToOne(() => ArtistEntity, (artist) => artist.id, {
-  //   onDelete: 'CASCADE',
-  // })
-  // @JoinColumn({ name: 'artistId' })
-  // artist: ArtistEntity;
-
-  // @Column({ type: 'uuid', nullable: true, default: null })
-  // artistId: string;
-
-
-  // @OneToOne(() => AlbumEntity, (album) => album.id, {
-  //   onDelete: 'CASCADE',
-  // })
-  // @JoinColumn({ name: 'albumId' })
-  // album: AlbumEntity;
-
-  // @Column({ type: 'uuid', nullable: true, default: null })
-  // albumId: string;
-
-
-  // @OneToOne(() => TrackEntity, (track) => track.id, {
-  //   onDelete: 'CASCADE',
-  // })
-  // @JoinColumn({ name: 'trackId' })
-  // track: TrackEntity;
-
-  // @Column({ type: 'uuid', nullable: true, default: null })
-  // trackId: string;
-
 }
