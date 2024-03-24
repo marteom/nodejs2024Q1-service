@@ -1,108 +1,90 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { responseUserData } from './utils/helper.js';
 import { isIdValid } from '../utils/common-utils'
 import { UserModel } from './user.model';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { dbService } from 'src/utils/data/db.service';
+import { UserEntity } from './user.entity.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
 
-  @Inject(dbService)
-  private readonly databaseService: dbService;
+  constructor(
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
+  ) {}
 
-  async getAllUsers() {
-    return (await this.databaseService.getAllUsers()).map(responseUserData);
+  async getAllUsers(): Promise<UserEntity[]> {
+    return (await this.userRepository.find()).map(responseUserData);
   }
 
-  async getUserById(id: string) {
+  async getUserById(id: string): Promise<UserEntity> {
     if (!(await isIdValid(id))) {
       throw new HttpException(
         'id parameter is invalid (not uuid)',
         HttpStatus.BAD_REQUEST,
       );
     }
-
-    const user = await this.databaseService.getUserById(id);
-
-    if (user) {
-      return responseUserData(user);
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return responseUserData(user);
   }
 
-  async createUser(dto: Pick<UserModel, 'login' | 'password'>) {
-    if (!dto.login) {
-      throw new HttpException(
-        'required parameter "login" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
+  async createUser(dto: Pick<UserModel, 'login' | 'password'>): Promise<UserEntity> {
+    const { login, password } = dto;
+    if (!login) {
+      throw new BadRequestException('required parameter "login" is missing');
     }
 
-    if (!dto.password) {
-      throw new HttpException(
-        'required parameter "password" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!password) {
+      throw new BadRequestException('required parameter "password" is missing');
     }
-
-    const newUser = await this.databaseService.createUser(dto.login, dto.password);
+    const newUser = this.userRepository.create({
+      login,
+      password,
+    });
+    await this.userRepository.save(newUser);
 
     return responseUserData(newUser);
   }
 
-  async updateUserPasword(id: string, dto: UpdatePasswordDto) {
+  async updateUserPasword(id: string, dto: UpdatePasswordDto): Promise<UserEntity> {
     if (!(await isIdValid(id))) {
-      throw new HttpException(
-        'id parameter is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('id parameter is invalid (not uuid)');
     }
-
     if (!dto.oldPassword) {
-      throw new HttpException(
-        'required parameter "oldPassword" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('required parameter "oldPassword" is missing');
     }
 
     if (!dto.newPassword) {
-      throw new HttpException(
-        'required parameter "newPassword" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('required parameter "newPassword" is missing');
     }
-
-    const putedUser = await this.databaseService.getUserById(id);
-
-    if (!putedUser) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    if (String(putedUser.password) !== String(dto.oldPassword)) {
-      throw new HttpException('oldPassword is incorrect', HttpStatus.FORBIDDEN);
+    if (String(user.password) !== String(dto.oldPassword)) {
+      throw new ForbiddenException('Old password is incorrect');
     }
+    user.password = dto.newPassword;
+    user.version += 1;
+    await this.userRepository.save(user);
 
-    const updatedUser = await this.databaseService.updateUserPasword(id, dto.newPassword);
-
-    return responseUserData(updatedUser);
+    return responseUserData(user);
   }
 
   async deleteUserById(id: string) {
     if (!(await isIdValid(id))) {
-      throw new HttpException(
-        'id parameter is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('id parameter is invalid (not uuid)');
     }
-
-    const deletedUser = await this.databaseService.deleteUserById(id);
-
-    if (!deletedUser) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    return deletedUser;
+    await this.userRepository.delete(id);
+    return user;
   }
 }
