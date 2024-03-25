@@ -29,7 +29,7 @@ services:
       retries: 10
   
   rest-service:
-    image: arteom/rest-service:latest
+    image: arteom/rest-service:0.0.2
     restart: always
     container_name: rest-service
     env_file:
