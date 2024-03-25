@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { isIdValid } from '../utils/common-utils';
 import { ArtistModel } from './artist.model';
 import { ArtistEntity } from './artist.entity';

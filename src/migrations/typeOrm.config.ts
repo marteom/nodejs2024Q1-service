@@ -1,11 +1,10 @@
 import * as dotenv from 'dotenv';
-import { DataSourceOptions, DataSource } from 'typeorm';
+import { DataSourceOptions } from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { TrackEntity } from '../track/track.entity';
 import { AlbumEntity } from '../album/album.entity';
 import { ArtistEntity } from '../artist/artist.entity';
 import { FavoritesEntity } from '../favorites/favorites.entity';
-import { Migrations1711222281956 } from './1711222281956-migrations';
 
 dotenv.config();
 
@@ -16,9 +15,15 @@ export const config: DataSourceOptions = {
   username: process.env.POSTGRES_USER as string,
   password: process.env.POSTGRES_PASSWORD as string,
   database: process.env.POSTGRES_DB as string,
-  entities: [UserEntity, AlbumEntity, TrackEntity, ArtistEntity, FavoritesEntity],
-  migrations: [Migrations1711222281956]
+  synchronize: Boolean(process.env.TYPEORM_SYNCHRONIZE),
+  entities: [
+    UserEntity,
+    AlbumEntity,
+    TrackEntity,
+    ArtistEntity,
+    FavoritesEntity,
+  ],
+  migrations: [process.env.MIGRATIONS],
 };
 
-const dataSource = new DataSource(config);
-export default dataSource;
+export default config;

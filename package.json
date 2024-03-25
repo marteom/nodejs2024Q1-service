@@ -21,11 +21,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "docker:rest-service": "docker build . -t arteom/rest-service",
-    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
-    "migration:generate": "npm run build && npm run typeorm migration:generate -- -d ./src/migrations/typeOrm.config.ts ./src/migrations/migrations",
-    "migration:generate2": "npm run build && npm run typeorm migration:generate -- -t 1 -d ./src/migrations/typeOrm.config.ts ./src/migrations/migrations",
-    "migration:run": "npm run build && npm run typeorm migration:run -- -d ./src/migrations/typeOrm.config.ts",
-    "migration:down": "npm run typeorm migration:revert -- -d ./src/migrations/typeOrm.config.ts"
+    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js -d ./src/migrations/data-source.ts",
+    "db-create": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs db:create  -d src/migrations/data-source.ts",    
+    "migration:create": "npm run build && node --require ts-node/register ./node_modules/typeorm/cli.js migration:create ./src/migrations/migrations",
+    "migration:generate": "npm run build && npm run typeorm migration:generate ./src/migrations/migrations",
+    "migration:run": "npm run build && npm run typeorm migration:run",
+    "migration:down": "npm run typeorm migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.4",
@@ -46,6 +47,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "typeorm": "^0.3.20",
+    "typeorm-extension": "^3.5.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
