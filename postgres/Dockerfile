@@ -1,8 +1,8 @@
-FROM postgres:16-alpine
-ENV POSTGRES_HOST localhost
-ENV POSTGRES_PORT 5432
-ENV POSTGRES_DB db
-ENV POSTGRES_USER admin
-ENV POSTGRES_PASSWORD qwerty12345
+FROM postgres
 
 EXPOSE 5432
+
+RUN mkdir /var/log/pgLogs
+RUN chown postgres:postgres /var/log/pgLogs
+# USER postgres
+CMD ["postgres", "-c", "logging_collector=on", "-c", "log_directory=/var/log/pgLogs"]
