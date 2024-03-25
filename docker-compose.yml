@@ -1,39 +1,42 @@
 version: '3.3'
 
+networks:
+  service:
+    driver: bridge
+
 services:
 
   db:
     image: arteom/postgres:latest
-    ports: 
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
-    volumes: 
-      - ./postgres/postgres_data:/var/lib/postgresql/data
-      - ./postgres/logs:/var/log/postgresql
+    container_name: db
     environment:
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    restart: always
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
     networks:
       - service
+    restart: always
+    volumes:
+      - ./node_modules:/app/node_modules
+      - ./postgres/postgres_data:/var/lib/postgresql/data
+      - ./postgres/logs:/var/logs/postgresql/postgresql.logs
     healthcheck:
-       test: ["CMD-SHELL", "pg_isready -d db -U admin"]
-       interval: 5s
-       timeout: 5s
-       retries: 5
-
+      test: [ 'CMD-SHELL', 'pg_isready -U admin' ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  
   rest-service:
     image: arteom/rest-service:latest
-    ports: 
-      - ${PORT}:${PORT}
-    environment:
-      PORT: ${PORT}
     restart: always
+    container_name: rest-service
+    env_file:
+      - .env
+    ports:
+      - ${PORT}:${PORT}
     networks:
       - service
-
-networks:
-  service:
-    driver: bridge
+    depends_on:
+      - db
