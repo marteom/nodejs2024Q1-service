@@ -1,8 +1,10 @@
-version: '3.9'
+version: '3.8'
 
 services:
   db:
-    image: arteom/postgres:0.0.4
+    build:
+      context: .
+      dockerfile: ./postgres/Dockerfile
     container_name: db
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -13,34 +15,47 @@ services:
     env_file:
       - .env
     ports:
-      - 5432:5432
-    networks:
-      - services-network
+      - '5432:5432'
     restart: always
     volumes:
-      - ./node_modules:/app/node_modules
-      - ./postgres/postgres_data:/var/lib/postgresql/data
-      - ./postgres/logs:/var/log/pgLogs
+      - db_data:/var/lib/postgresql/data
+      - db_logs:/var/log/postgresql
     healthcheck:
       test: [ 'CMD-SHELL', 'pg_isready -U admin' ]
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - app
+      - db
   
-  rest-service:
-    image: arteom/rest-service:0.0.3
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run start:dev
+    volumes:
+      - ./src:/app/src
     restart: always
-    container_name: rest-service
+    container_name: app
     env_file:
       - .env
     ports:
-      - ${PORT}:${PORT}
-    networks:
-      - services-network
+      - '4000:4000'
     depends_on:
       - db
+    networks:
+      - app
+
+volumes:
+  db_data:
+    name: db_data
+    driver: local
+  db_logs:
+    name: db_logs
+    driver: local
 
 networks:
-  services-network:
-    name: services-network
+  db:
+  app:
     driver: bridge
