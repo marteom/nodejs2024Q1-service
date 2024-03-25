@@ -13,7 +13,7 @@ import {
 import { UpdatePasswordDto } from './dto/update-password.dto.js';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 @Controller('user')
 export class UserController {
@@ -48,6 +48,7 @@ export class UserController {
 
   @Put(':id')
   @ApiOperation({summary: `Update a user's password`, description: `Updates a user's password by ID`})
+  @ApiBody({required: true})
   @ApiResponse({status: HttpStatus.OK, description: 'The user has been updated.'})
   @ApiResponse({status: HttpStatus.BAD_REQUEST, description: 'Bad request. userId is invalid (not uuid)'})
   @ApiResponse({status: HttpStatus.UNAUTHORIZED})
