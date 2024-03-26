@@ -1,0 +1,13 @@
+.git
+.gitignore
+.dockerignore
+.prettierrc
+.eslintrc.js
+.env
+.env.emample
+dist
+build
+node_modules
+Dockerfile
+postgres
+READMI.md

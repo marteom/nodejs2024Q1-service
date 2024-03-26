@@ -1,139 +1,100 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { isIdValid } from '../utils/common-utils';
 import { TrackModel } from './track.model';
-import { dbService } from 'src/utils/data/db.service';
+import { TrackEntity } from './track.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TrackService {
 
-  @Inject(dbService)
-  private readonly databaseService: dbService;
+  constructor(
+    @InjectRepository(TrackEntity)
+    private readonly trackRepository: Repository<TrackEntity>,
+  ) {}
 
-  async getAllTracks() {
-    return this.databaseService.getAllTracks();
+  async getAllTracks(): Promise<TrackEntity[]> {
+    return await this.trackRepository.find();
   }
 
-  async getTrackById(id: string) {
+  async getTrackById(id: string): Promise<TrackEntity> {
     if (!(await isIdValid(id))) {
-      throw new HttpException(
-        'id parameter is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('id parameter is invalid (not uuid)');
     }
-
-    const track = await this.databaseService.getTrackById(id);
-
-    if (track) {
-      return track;
+    const track = await this.trackRepository.findOne({ where: { id } });
+    if (!track) {
+      throw new NotFoundException(`Track with ID ${id} not found`);
     }
-
-    throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
+    return track;
   }
 
-  async CreateTrack(dto: Omit<TrackModel, 'id'>) {
-    if (
-      dto.albumId === undefined ||
-      !(dto.albumId === null ? true : await isIdValid(dto.albumId))
-    ) {
-      throw new HttpException(
-        'required parameter "albumId" is missing or invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+  async CreateTrack(dto: Omit<TrackModel, 'id'>): Promise<TrackEntity> {
+    const { name, artistId, albumId, duration } = dto;
+    if (albumId === undefined || !(albumId === null ? true : await isIdValid(albumId))) {
+      throw new BadRequestException('required parameter "albumId" is missing or invalid (not uuid)');
+    }
+    if (artistId === undefined || !(artistId === null ? true : await isIdValid(artistId))) {
+      throw new BadRequestException('required parameter "artistId" is missing or invalid (not uuid)');
     }
 
-    if (
-      dto.artistId === undefined ||
-      !(dto.artistId === null ? true : await isIdValid(dto.artistId))
-    ) {
-      throw new HttpException(
-        'required parameter "artistId" is missing or invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!name) {
+      throw new BadRequestException('required parameter "name" is missing');
     }
 
-    if (!dto.name) {
-      throw new HttpException(
-        'required parameter "name" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!duration) {
+      throw new BadRequestException('required parameter "duration" is missing');
     }
 
-    if (!dto.duration) {
-      throw new HttpException(
-        'required parameter "duration" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const newTrack = await this.databaseService.CreateTrack(dto.albumId, dto.artistId, dto.name, dto.duration);
-    return newTrack;
+    const track = this.trackRepository.create({
+      name,
+      artistId,
+      albumId,
+      duration,
+    });
+    return await this.trackRepository.save(track);
   }
 
-  async updateTrackInfo(id: string, dto: Omit<TrackModel, 'id'>) {
+  async updateTrackInfo(id: string, dto: Omit<TrackModel, 'id'>): Promise<TrackEntity> {
     if (!(await isIdValid(id))) {
-      throw new HttpException(
-        'id parameter is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('id parameter is invalid (not uuid)');
     }
 
-    if (
-      dto.albumId === undefined ||
-      !(dto.albumId === null ? true : await isIdValid(dto.albumId))
-    ) {
-      throw new HttpException(
-        'required parameter "albumId" is missing or invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+    const track = await this.trackRepository.findOne({ where: { id } });
+
+    if (!track) {
+      throw new NotFoundException(`Track with ID ${id} not found`);
     }
 
-    if (
-      dto.artistId === undefined ||
-      !(dto.artistId === null ? true : await isIdValid(dto.artistId))
-    ) {
-      throw new HttpException(
-        'required parameter "artistId" is missing or invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+    const { name, artistId, albumId, duration } = dto;
+
+    if (albumId === undefined || !(albumId === null ? true : await isIdValid(albumId))) {
+      throw new BadRequestException('required parameter "albumId" is missing or invalid (not uuid)');
+    }
+    if (artistId === undefined || !(artistId === null ? true : await isIdValid(artistId))) {
+      throw new BadRequestException('required parameter "artistId" is missing or invalid (not uuid)');
+    }
+    if (!name) {
+      throw new BadRequestException('required parameter "name" is missing');
+    }
+    if (!duration) {
+      throw new BadRequestException('required parameter "duration" is missing');
     }
 
-    if (!dto.name) {
-      throw new HttpException(
-        'required parameter "name" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    track.name = name;
+    track.artistId = artistId;
+    track.albumId = albumId;
+    track.duration = duration;
 
-    if (!dto.duration) {
-      throw new HttpException(
-        'required parameter "duration" is missing',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const putedTrack = await this.databaseService.updateTrackInfo(id, dto.albumId, dto.artistId, dto.duration, dto.name);
-
-    if (!putedTrack) {
-      throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
-    }
-
-    return putedTrack;
+    return await this.trackRepository.save(track);
   }
 
-  async deleteTrackById(id: string) {
+  async deleteTrackById(id: string): Promise<void> {
     if (!(await isIdValid(id))) {
-      throw new HttpException(
-        'id parameter is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('id parameter is invalid (not uuid)');
     }
-
-    const deletedTrack = await this.databaseService.deleteTrackById(id);
-
-    if (!deletedTrack) {
-      throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
+    const result = await this.trackRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Track with ID ${id} not found`);
     }
-
-    return deletedTrack;
   }
 }

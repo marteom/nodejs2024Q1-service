@@ -1,149 +1,159 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { isIdValid } from 'src/utils/common-utils';
-import { dbService } from 'src/utils/data/db.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, EntityManager } from 'typeorm';
+import { ArtistEntity } from 'src/artist/artist.entity';
+import { AlbumEntity } from 'src/album/album.entity';
+import { TrackEntity } from 'src/track/track.entity';
+import { FavoritesEntity } from './favorites.entity';
 
 @Injectable()
 export class FavoriteService {
 
-  @Inject(dbService)
-  private readonly databaseService: dbService;
+  constructor(
+    @InjectRepository(FavoritesEntity)
+    private readonly favRepository: Repository<FavoritesEntity>,
+    private readonly entityManager: EntityManager,
+  ) {}
 
+  private async getFavs() {
+    let favorites = await this.favRepository.findOne({
+      where: {},
+      relations: {
+        albums: true,
+        artists: true,
+        tracks: true,
+      },
+    });
+
+    if (!favorites) {
+      favorites = {
+        albums: [],
+        artists: [],
+        tracks: [],
+      } as unknown as FavoritesEntity;
+    }
+
+    return favorites;
+  }
 
   async getAllFavorites() {
-    return this.databaseService.getAllFavorites();
+    const favorites = await this.getFavs();
+    const favResponse = {
+      albums: favorites.albums || [],
+      artists: favorites.artists || [],
+      tracks: favorites.tracks || [],
+    };
+    return favResponse;
   }
 
-  async addTrackToFavorites(trackId: string) {
-    if (
-      trackId === undefined ||
-      !(trackId === null ? true : await isIdValid(trackId))
-    ) {
-        throw new HttpException(
-            'required parameter "trackId" is missing or invalid (not uuid)',
-            HttpStatus.BAD_REQUEST,
-          );
+  async addTrackToFavorites(id: string) {
+    if (id === undefined || !(id === null ? true : await isIdValid(id))) {
+        throw new BadRequestException('required parameter "id" is missing or invalid (not uuid)');
     }
-
-    const track = await this.databaseService.addTrackToFavorites(trackId);
+    const track = await this.entityManager.findOneBy(TrackEntity, { id });
     if (!track) {
-        throw new HttpException(
-            'Track does not exist',
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+      throw new UnprocessableEntityException(`Track with ID ${id} not found`);
     }
-
-    return track;
+    const favorites = await this.getFavs();
+    favorites['tracks'].push(track as any);
+    return await this.favRepository.save(favorites);
   }
 
-  async deleteTrackFavoritesById(trackId: string) {
-    if (
-      trackId === undefined ||
-      !(trackId === null ? true : await isIdValid(trackId))
-    ) {
-        throw new HttpException(
-            'required parameter "trackId" is missing or invalid (not uuid)',
-            HttpStatus.BAD_REQUEST,
-          );
+  async deleteTrackFavoritesById(id: string): Promise<void> {
+    if (id === undefined || !(id === null ? true : await isIdValid(id))) {
+        throw new BadRequestException('required parameter "id" is missing or invalid (not uuid)');
     }
-
-    const track = await this.databaseService.deleteTrackFavoritesById(trackId);
+    const track = await this.entityManager.findOneBy(TrackEntity, { id });
     if (!track) {
-        throw new HttpException(
-            'Track does not exist',
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+      throw new NotFoundException(`Track with ID ${id} does not exist`);
     }
+    let favorites = await this.favRepository.findOne({
+      where: {},
+      relations: {
+        albums: true,
+        artists: true,
+        tracks: true,
+      },
+    });
+    const trackIndex = favorites['tracks'].findIndex((t) => t.id === track.id);
 
-    return track;
+    favorites['tracks'].splice(trackIndex, 1);
+    await this.favRepository.save(favorites);
   }
 
-  async addAlbumToFavorites(albumId: string) {
-    if (
-      albumId === undefined ||
-      !(albumId === null ? true : await isIdValid(albumId))
-    ) {
-        throw new HttpException(
-            'required parameter "albumId" is missing or invalid (not uuid)',
-            HttpStatus.BAD_REQUEST,
-          );
+  async addAlbumToFavorites(id: string) {
+    if (id === undefined || !(id === null ? true : await isIdValid(id))) {
+        throw new BadRequestException('required parameter "id" is missing or invalid (not uuid)');
     }
-
-    const album = await this.databaseService.addAlbumToFavorites(albumId);
+    const album = await this.entityManager.findOneBy(AlbumEntity, { id });
     if (!album) {
-        throw new HttpException(
-            'Album does not exist',
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+      throw new UnprocessableEntityException(`Album with ID ${id} not found`);
     }
-
-    return album;
+    const favorites = await this.getFavs();
+    favorites['albums'].push(album as any);
+    return await this.favRepository.save(favorites);
   }
 
-  async deleteAlbumFavoritesById(albumId: string) {
-    if (
-      albumId === undefined ||
-      !(albumId === null ? true : await isIdValid(albumId))
-    ) {
-        throw new HttpException(
-            'required parameter "albumId" is missing or invalid (not uuid)',
-            HttpStatus.BAD_REQUEST,
-          );
+  async deleteAlbumFavoritesById(id: string): Promise<void>  {
+    if (id === undefined || !(id === null ? true : await isIdValid(id))) {
+        throw new BadRequestException('required parameter "albumId" is missing or invalid (not uuid)');
     }
-
-    const album = await this.databaseService.deleteAlbumFavoritesById(albumId);
+    const album = await this.entityManager.findOneBy(AlbumEntity, { id });
     if (!album) {
-        throw new HttpException(
-            'Album does not exist in favorites',
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+      throw new NotFoundException(`Album with ID ${id} does not exist`);
     }
+    let favorites = await this.favRepository.findOne({
+      where: {},
+      relations: {
+        albums: true,
+        artists: true,
+        tracks: true,
+      },
+    });
+    const albumIndex = favorites['albums'].findIndex((a) => a.id === album.id);
 
-    return album;
+    favorites['albums'].splice(albumIndex, 1);
+    await this.favRepository.save(favorites);
   }
 
-
-  async addArtistToFavorites(artistId: string) {
-    if (
-      artistId === undefined ||
-      !(artistId === null ? true : await isIdValid(artistId))
-    ) {
-        throw new HttpException(
-            'required parameter "artistId" is missing or invalid (not uuid)',
-            HttpStatus.BAD_REQUEST,
-          );
+  async addArtistToFavorites(id: string) {
+    if (id === undefined || !(id === null ? true : await isIdValid(id))) {
+        throw new BadRequestException('required parameter "artistId" is missing or invalid (not uuid)');
     }
-
-    const artist = await this.databaseService.addArtistToFavorites(artistId);
+    const artist = await this.entityManager.findOneBy(ArtistEntity, { id });
     if (!artist) {
-        throw new HttpException(
-            'Artist does not exist',
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+      throw new UnprocessableEntityException(
+        `Artist with ID ${id} does not exist`,
+      );
     }
-
-    return artist;
+    const favorites = await this.getFavs();
+    favorites['artists'].push(artist as any);
+    return await this.favRepository.save(favorites);
   }
 
-  async deleteArtistFavoritesById(artistId: string) {
-    if (
-      artistId === undefined ||
-      !(artistId === null ? true : await isIdValid(artistId))
-    ) {
-        throw new HttpException(
-            'required parameter "artistId" is missing or invalid (not uuid)',
-            HttpStatus.BAD_REQUEST,
-          );
+  async deleteArtistFavoritesById(id: string): Promise<void>  {
+    if (id === undefined || !(id === null ? true : await isIdValid(id))) {
+        throw new BadRequestException('required parameter "artistId" is missing or invalid (not uuid)');
     }
-
-    const artist = await this.databaseService.deleteArtistFavoritesById(artistId);
+    const artist = await this.entityManager.findOneBy(ArtistEntity, { id });
     if (!artist) {
-        throw new HttpException(
-            'Artist does not exist in favorites',
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+      throw new NotFoundException(`Artist with ID ${id} does not exist`);
     }
+    let favorites = await this.favRepository.findOne({
+      where: {},
+      relations: {
+        albums: true,
+        artists: true,
+        tracks: true,
+      },
+    });
+    const artistIndex = favorites['artists'].findIndex(
+      (a) => a.id === artist.id,
+    );
 
-    return artist;
+    favorites['artists'].splice(artistIndex, 1);
+    await this.favRepository.save(favorites);
   }
 
 }
