@@ -8,39 +8,65 @@ import {
   Param,
   Post,
   Put,
+  ValidationPipe,
 } from '@nestjs/common';
-import { UserModel } from './user.model';
 import { UpdatePasswordDto } from './dto/update-password.dto.js';
 import { UserService } from './user.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
+  @ApiOperation({summary: 'Get all users', description: 'Get all users'})
+  @ApiResponse({status: HttpStatus.OK, description: 'Successful operation'})
   async getAllUsers() {
     return this.userService.getAllUsers();
   }
 
   @Get(':id')
+  @ApiOperation({summary: 'Get single user by id', description: 'Get single user by id'})
+  @ApiParam({name: 'userId', required: true})
+  @ApiResponse({status: HttpStatus.OK, description: 'Successful operation'})
+  @ApiResponse({status: HttpStatus.BAD_REQUEST, description: 'Bad request. userId is invalid (not uuid)'})
+  @ApiResponse({status: HttpStatus.UNAUTHORIZED})
+  @ApiResponse({status: HttpStatus.NOT_FOUND, description: 'User not found'})
   async getUserById(@Param('id') id: string) {
     return this.userService.getUserById(id);
   }
 
   @Post()
-  async CreateUserDto(@Body() dto: Pick<UserModel, 'login' | 'password'>) {
+  @ApiOperation({summary: 'Create user', description: 'Creates a new user'})
+  @ApiResponse({status: HttpStatus.CREATED, description: 'The user has been created'})
+  @ApiResponse({status: HttpStatus.BAD_REQUEST, description: 'Bad request. body does not contain required fields'})
+  @ApiResponse({status: HttpStatus.UNAUTHORIZED})
+  async CreateUserDto(@Body() dto: CreateUserDto) {
     return this.userService.createUser(dto);
   }
 
   @Put(':id')
+  @ApiOperation({summary: `Update a user's password`, description: `Updates a user's password by ID`})
+  @ApiBody({required: true})
+  @ApiResponse({status: HttpStatus.OK, description: 'The user has been updated.'})
+  @ApiResponse({status: HttpStatus.BAD_REQUEST, description: 'Bad request. userId is invalid (not uuid)'})
+  @ApiResponse({status: HttpStatus.UNAUTHORIZED})
+  @ApiResponse({status: HttpStatus.FORBIDDEN, description: `oldPassword is wrong`})
+  @ApiResponse({status: HttpStatus.NOT_FOUND, description: 'User not found'})
   async updateUserPasword(
-    @Param('id') id: string,
+    @Param('id', ValidationPipe) id: string,
     @Body() dto: UpdatePasswordDto,
   ) {
     return this.userService.updateUserPasword(id, dto);
   }
 
   @Delete(':id')
+  @ApiOperation({summary: `Delete user`, description: `Deletes user by ID.`})
+  @ApiResponse({status: HttpStatus.NO_CONTENT, description: 'The user has been deleted'})
+  @ApiResponse({status: HttpStatus.BAD_REQUEST, description: 'Bad request. userId is invalid (not uuid)'})
+  @ApiResponse({status: HttpStatus.UNAUTHORIZED})
+  @ApiResponse({status: HttpStatus.NOT_FOUND, description: 'User not found'})
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUserById(@Param('id') id: string) {
     return this.userService.deleteUserById(id);

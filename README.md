@@ -9,6 +9,7 @@
 
 ```
 git clone {repository URL}
+git checkout dev-2
 ```
 
 ## Installing NPM modules
@@ -17,15 +18,24 @@ git clone {repository URL}
 npm install
 ```
 
+## Run Docker and migrations:
+
+1. Move to root project directory in Terminal
+2. Run **docker-compose up -d** or **sudo docker compose up -d** for launching
+3. Execute script for create db: **npm run db-create**
+4. Execute script for init migrations: **npm run migration:create**
+5. Execute **npm run migration:run**
+6. Execute script for generate tables migrations: **npm run migration:generate**
+7. Execute **npm run migration:run**
+
 ## Running application
 
 ```
-npm start
+npm run start or npm run start:dev
 ```
 
 After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+in your browser OpenAPI documentation by typing http://localhost:port/doc/.
 
 ## Testing
 
@@ -36,37 +46,3 @@ To run all tests without authorization
 ```
 npm run test
 ```
-
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
-```
-
-To run all test with authorization
-
-```
-npm run test:auth
-```
-
-To run only specific test suite with authorization
-
-```
-npm run test:auth -- <path to suite>
-```
-
-### Auto-fix and format
-
-```
-npm run lint
-```
-
-```
-npm run format
-```
-
-### Debugging in VSCode
-
-Press <kbd>F5</kbd> to debug.
-
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
