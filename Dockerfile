@@ -1,15 +1,18 @@
 FROM node:20-alpine
 
-WORKDIR /usr/src/app
+USER node
 
-COPY package*.json ./
+RUN mkdir -p /home/node
+WORKDIR /home/node
 
-RUN npm install
+COPY --chown=node:node package*.json ./
 
-COPY . .
+RUN npm i --force && npm cache clean --force
+
+COPY --chown=node:node . .
 
 RUN npm run build
 
-EXPOSE 4000
+EXPOSE ${PORT}
 
-CMD [ "node", "dist/main.js" ]
+CMD [ "npm", "run", "start:dev" ]
