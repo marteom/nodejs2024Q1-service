@@ -18,6 +18,14 @@ export class UserService {
     return (await this.userRepository.find()).map(responseUserData);
   }
 
+  async getUserByLogin(login: string): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { login } });
+    if (!user) {
+      throw new NotFoundException(`User with login ${login} not found`);
+    }
+    return responseUserData(user);
+  }
+
   async getUserById(id: string): Promise<UserEntity> {
     if (!(await isIdValid(id))) {
       throw new HttpException(
