@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { responseUserData } from './utils/helper.js';
-import { isIdValid } from '../utils/common-utils'
+import { isIdValid } from '../utils/common-utils';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UserEntity } from './user.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,7 +9,6 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 
 @Injectable()
 export class UserService {
-
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
