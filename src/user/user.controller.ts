@@ -15,7 +15,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto.js';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guard/jwt.guard.js';///src/auth/guard/jwt.guard.js';
+import { JwtAuthGuard } from '../auth/guard/jwt.guard.js';
 
 @Controller('user')
 export class UserController {
