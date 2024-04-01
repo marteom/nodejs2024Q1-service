@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserEntity } from 'src/user/user.entity';
@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { signUpUser } from './types/signup_user';
 import { UserService } from 'src/user/user.service';
+import { isString } from 'class-validator';
 
 @Injectable()
 export class AuthService {
@@ -78,4 +79,46 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async refresh(dto: { refreshToken: string }) {
+    const { refreshToken } = dto;
+    if (!refreshToken || !isString(refreshToken)) {
+      throw new UnauthorizedException('Invalid refreshToken value');
+    }
+
+    try {
+      const decodedToken = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
+      });
+
+      const { userId, login } = decodedToken;
+
+      const existingUser = await this.userService.getUserByLogin(login);
+
+      if (userId !== existingUser.id) {
+        throw new ForbiddenException('Refresh token is invalid or expired');
+      }
+
+      const payload = { userId: existingUser.id, login: existingUser.login };
+
+      const newAccessToken = await this.jwtService.signAsync(payload, {
+        expiresIn: process.env.TOKEN_EXPIRE_TIME,
+        secret: process.env.JWT_SECRET_KEY,
+      });
+
+      const newRefreshToken = await this.jwtService.signAsync(payload, {
+        expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME,
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
+      });
+
+      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new ForbiddenException('Expired refresh token');
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new ForbiddenException(`Invalid refresh token - ${error.name}`);
+      } else {
+        throw new ForbiddenException('Refresh token is invalid or expired');
+      }
+    }
+  }
 }
