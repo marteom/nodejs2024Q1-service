@@ -1,19 +1,25 @@
-import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
-import { UserEntity } from 'src/user/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { signUpUser } from './types/signup_user';
-import { UserService } from 'src/user/user.service';
 import { isString } from 'class-validator';
+import { UserEntity } from 'src/user/user.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { responseUserData } from 'src/user/utils/helper';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(UserEntity)
     private jwtService: JwtService,
-    private userService: UserService,
+    @InjectRepository(UserEntity)
+    private userRepository: Repository<UserEntity>,
   ) {}
 
   async signUp(dto: CreateUserDto): Promise<signUpUser> {
@@ -30,10 +36,11 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = await this.userService.createUser({
+    const newUser = await this.userRepository.create({
       login,
       password: hashedPassword,
     });
+    await this.userRepository.save(newUser);
 
     const payload = { userId: newUser.id, login: newUser.login };
 
@@ -62,7 +69,8 @@ export class AuthService {
       throw new BadRequestException('required parameter "password" is missing');
     }
 
-    const existingUser = await this.userService.getUserByLogin(login);
+    const user = await this.userRepository.findOne({ where: { login } });
+    const existingUser = responseUserData(user);
 
     const payload = { userId: existingUser.id, login: existingUser.login };
 
@@ -92,7 +100,8 @@ export class AuthService {
 
       const { userId, login } = decodedToken;
 
-      const existingUser = await this.userService.getUserByLogin(login);
+      const user = await this.userRepository.findOne({ where: { login } });
+      const existingUser = responseUserData(user);
 
       if (userId !== existingUser.id) {
         throw new ForbiddenException('Refresh token is invalid or expired');

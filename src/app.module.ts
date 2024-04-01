@@ -11,17 +11,20 @@ import { FavoritesModule } from './favorites/favorites.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env',
+      envFilePath: join(process.cwd(), '.env'),
+      isGlobal: true,
     }),
     UserModule,
     ArtistModule,
     TrackModule,
     AlbumModule,
     FavoritesModule,
+    AuthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,
@@ -33,7 +36,6 @@ import { AuthModule } from './auth/auth.module';
       synchronize: false,
       logging: true,
     }),
-    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
