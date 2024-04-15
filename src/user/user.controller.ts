@@ -8,17 +8,20 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { UpdatePasswordDto } from './dto/update-password.dto.js';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guard/jwt.guard.js';
 
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({summary: 'Get all users', description: 'Get all users'})
   @ApiResponse({status: HttpStatus.OK, description: 'Successful operation'})
@@ -26,6 +29,7 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({summary: 'Get single user by id', description: 'Get single user by id'})
   @ApiParam({name: 'userId', required: true})
@@ -37,6 +41,7 @@ export class UserController {
     return this.userService.getUserById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({summary: 'Create user', description: 'Creates a new user'})
   @ApiResponse({status: HttpStatus.CREATED, description: 'The user has been created'})
@@ -46,6 +51,7 @@ export class UserController {
     return this.userService.createUser(dto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   @ApiOperation({summary: `Update a user's password`, description: `Updates a user's password by ID`})
   @ApiBody({required: true})
@@ -61,6 +67,7 @@ export class UserController {
     return this.userService.updateUserPasword(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({summary: `Delete user`, description: `Deletes user by ID.`})
   @ApiResponse({status: HttpStatus.NO_CONTENT, description: 'The user has been deleted'})

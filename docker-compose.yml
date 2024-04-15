@@ -1,33 +1,29 @@
-version: '3.8'
-
 services:
-  db:
+  postgres:
     build:
       context: .
       dockerfile: ./postgres/Dockerfile
-    container_name: db
+    container_name: postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_DB=${POSTGRES_DB}
-    env_file:
-      - .env
+      - PGDATA=/data/postgres
     ports:
-      - '5432:5432'
-    restart: always
+      - 5432:5432
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - db_logs:/var/log/postgresql
+      - postgres:/data/postgres
+      - logs:/logs:z
     healthcheck:
-      test: [ 'CMD-SHELL', 'pg_isready -U admin' ]
+      test: [ 'CMD-SHELL', 'pg_isready -U postgres' ]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
-      - app
-      - db
+      - backend
+    restart: unless-stopped
   
   app:
     build:
@@ -35,27 +31,22 @@ services:
       dockerfile: Dockerfile
     command: npm run start:dev
     volumes:
-      - ./src:/app/src
-    restart: always
+      - ./src:/home/node/src
     container_name: app
-    env_file:
-      - .env
+    environment:
+      - PORT=${PORT}
     ports:
-      - '4000:4000'
+      - '${PORT}:${PORT}'
     depends_on:
-      - db
+      - postgres
     networks:
-      - app
-
-volumes:
-  db_data:
-    name: db_data
-    driver: local
-  db_logs:
-    name: db_logs
-    driver: local
+      - backend
+    restart: unless-stopped
 
 networks:
-  db:
-  app:
+  backend:
     driver: bridge
+
+volumes:
+  postgres:
+  logs:

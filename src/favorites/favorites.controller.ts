@@ -6,14 +6,17 @@ import {
   HttpStatus,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { FavoriteService } from './favorites.service';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guard/jwt.guard.js';
 
 @Controller('favs')
 export class FavoritesController {
   constructor(private favoriteService: FavoriteService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({summary: 'Get all favorites', description: 'Gets all favorites movies, tracks and books'})
   @ApiResponse({status: HttpStatus.OK, description: 'Successful operation'})
@@ -22,6 +25,7 @@ export class FavoritesController {
     return this.favoriteService.getAllFavorites();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/track/:id')
   @ApiOperation({summary: 'Add track to the favorites', description: 'Add track to the favorites'})
   @ApiBody({required: true})
@@ -33,6 +37,7 @@ export class FavoritesController {
     return this.favoriteService.addTrackToFavorites(trackId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/track/:id')
   @ApiOperation({summary: `Delete track from favorites`, description: `Delete track from favorites`})
   @ApiResponse({status: HttpStatus.NO_CONTENT, description: 'Deleted successfully'})
@@ -44,6 +49,7 @@ export class FavoritesController {
       return this.favoriteService.deleteTrackFavoritesById(trackId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/album/:id')
   @ApiOperation({summary: 'Add album to the favorites', description: 'Add album to the favorites'})
   @ApiBody({required: true})
@@ -55,6 +61,7 @@ export class FavoritesController {
       return this.favoriteService.addAlbumToFavorites(albumId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/album/:id')
   @ApiOperation({summary: `Delete album from favorites`, description: `Delete album from favorites`})
   @ApiResponse({status: HttpStatus.NO_CONTENT, description: 'Deleted successfully'})
@@ -66,7 +73,8 @@ export class FavoritesController {
       return this.favoriteService.deleteAlbumFavoritesById(albumId);
   }
 
-   @Post('/artist/:id')
+  @UseGuards(JwtAuthGuard)
+  @Post('/artist/:id')
   @ApiOperation({summary: 'Add artist to the favorites', description: 'Add artist to the favorites'})
   @ApiBody({required: true})
   @ApiResponse({status: HttpStatus.CREATED, description: 'Added successfully'})
@@ -77,6 +85,7 @@ export class FavoritesController {
       return this.favoriteService.addArtistToFavorites(artistId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/artist/:id')
   @ApiOperation({summary: `Delete artist from favorites`, description: `Delete artist from favorites`})
   @ApiResponse({status: HttpStatus.NO_CONTENT, description: 'Deleted successfully'})

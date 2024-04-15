@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { responseUserData } from './utils/helper.js';
-import { isIdValid } from '../utils/common-utils'
+import { isIdValid } from '../utils/common-utils';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UserEntity } from './user.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,7 +9,6 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 
 @Injectable()
 export class UserService {
-
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -17,6 +16,14 @@ export class UserService {
 
   async getAllUsers(): Promise<UserEntity[]> {
     return (await this.userRepository.find()).map(responseUserData);
+  }
+
+  async getUserByLogin(login: string): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { login } });
+    if (!user) {
+      throw new NotFoundException(`User with login ${login} not found`);
+    }
+    return responseUserData(user);
   }
 
   async getUserById(id: string): Promise<UserEntity> {

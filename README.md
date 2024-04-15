@@ -22,11 +22,7 @@ npm install
 
 1. Move to root project directory in Terminal
 2. Run **docker-compose up -d** or **sudo docker compose up -d** for launching
-3. Execute script for create db: **npm run db-create**
-4. Execute script for init migrations: **npm run migration:create**
-5. Execute **npm run migration:run**
-6. Execute script for generate tables migrations: **npm run migration:generate**
-7. Execute **npm run migration:run**
+3. Execute script for create db: **sudo npm run db-init** or **npm run db-init**
 
 ## Running application
 
